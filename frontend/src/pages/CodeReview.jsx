@@ -38,8 +38,8 @@ const CodeReview = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900 text-white p-8">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <div >
+      <div className="max-w-6xl mx-auto space-y-8 text-white py-12">
 
         {/* Header */}
         <div>
