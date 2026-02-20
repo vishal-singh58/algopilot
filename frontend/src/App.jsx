@@ -4,7 +4,7 @@ import Contest from "./pages/Contest";
 import Home from "./pages/Home";
 import CodeReview from "./pages/CodeReview";
 import Navbar from "./components/navbar/Navbar";
-import Dsasheet from "./pages/dsasheet";
+import Dsasheet from "./pages/Dsasheet";
 import Login from "./components/login/Login";
 import Signup from "./components/login/Signup";
 
