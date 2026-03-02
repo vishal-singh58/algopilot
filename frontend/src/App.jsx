@@ -1,36 +1,33 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Contest from "./pages/Contest";
 import Home from "./pages/Home";
+import Contest from "./pages/Contest";
 import CodeReview from "./pages/CodeReview";
-import Navbar from "./components/navbar/Navbar";
 import Dsasheet from "./pages/Dsasheet";
 import Login from "./components/login/Login";
 import Signup from "./components/login/Signup";
+import ProtectedRoute from "./components/ProtectedRoute";
+import Layout from "./components/layout";
 
 function App() {
-  
-
   return (
-    <>
-      <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
-        <Router>
-          <Navbar />
+    <Router>
+      <Layout>
+        <Routes>
+          {/* Protected pages */}
+          <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+          <Route path="/contest" element={<ProtectedRoute><Contest /></ProtectedRoute>} />
+          <Route path="/code-review" element={<ProtectedRoute><CodeReview /></ProtectedRoute>} />
+          <Route path="/dsa-sheet" element={<ProtectedRoute><Dsasheet /></ProtectedRoute>} />
 
-          <main className="pt-16">
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/contest" element={<Contest />} />
-              <Route path="/code-review" element={<CodeReview />} />
-              <Route path="/dsa-sheet" element={<Dsasheet />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/signup" element={<Signup />} />
-            </Routes>
-          </main>
-        </Router>
-      </div>
-    </>
+          {/* Public pages */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Signup />} />
+        </Routes>
+      </Layout>
+    </Router>
   );
 }
+
 
 export default App;
