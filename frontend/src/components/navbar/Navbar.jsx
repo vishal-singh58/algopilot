@@ -21,7 +21,7 @@ function Navbar() {
       <div className="container mx-auto px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2">
+          <Link to="/home" className="flex items-center gap-2">
             <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
               <Code2 className="w-6 h-6 text-white" />
             </div>
@@ -31,9 +31,9 @@ function Navbar() {
           {/* Navigation Links */}
           <div className="flex items-center gap-4">
             <Link
-              to="/"
+              to="/home"
               className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                isActive("/") ? "bg-blue-600 text-white" : "text-gray-300 hover:bg-white/10"
+                isActive("/home") ? "bg-blue-600 text-white" : "text-gray-300 hover:bg-white/10"
               }`}
             >
               <Home className="w-4 h-4" />

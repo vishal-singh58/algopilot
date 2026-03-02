@@ -8,6 +8,7 @@ import Login from "./components/login/Login";
 import Signup from "./components/login/Signup";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Layout from "./components/layout";
+import { Navigate } from "react-router-dom";
 
 function App() {
   return (
@@ -15,7 +16,8 @@ function App() {
       <Layout>
         <Routes>
           {/* Protected pages */}
-          <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+          <Route path="/" element={<ProtectedRoute><Navigate to="/login" /></ProtectedRoute>} />
+          <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
           <Route path="/contest" element={<ProtectedRoute><Contest /></ProtectedRoute>} />
           <Route path="/code-review" element={<ProtectedRoute><CodeReview /></ProtectedRoute>} />
           <Route path="/dsa-sheet" element={<ProtectedRoute><Dsasheet /></ProtectedRoute>} />

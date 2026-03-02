@@ -41,7 +41,7 @@ const Login = () => {
       localStorage.setItem("token", data.token);
 
       // ✅ Redirect to home page
-      navigate("/"); // "/" is your home page route
+      navigate("/home"); // "/" is your home page route
       setLoading(false);
     } catch (error) {
       console.log("Login Error:", error);
