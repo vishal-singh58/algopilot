@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import connectDB from "./config/db.js";
 import authRoutes from "./routes/authroutes.js"; // Fix case if needed
 import cors from "cors";
+import codeReviewRoute from "./routes/codereview.js";
+import rateLimit from "express-rate-limit";
 
 dotenv.config();
 
@@ -16,11 +18,23 @@ app.use(cors({
   credentials: true
 }));
 
+// ✅ Rate Limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // limit each IP to 20 requests per windowMs
+  message: "Too many requests from this IP, please try again later."
+});
+app.use(limiter);
+
+
 // ✅ Connect Database
 connectDB();
 
 // ✅ Routes
 app.use("/api/auth", authRoutes);
+
+//✅ code review api
+app.use("/api/review", codeReviewRoute);
 
 app.get("/", (req, res) => {
   res.send("AlgoPilot Backend Running 🚀");
