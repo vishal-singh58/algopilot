@@ -5,6 +5,8 @@ import authRoutes from "./routes/authroutes.js"; // Fix case if needed
 import cors from "cors";
 import codeReviewRoute from "./routes/codereview.js";
 import rateLimit from "express-rate-limit";
+import contestRoutes from "./routes/contest.routes.js";
+import { startContestJobs } from "./jobs/contest.job.js";
 
 dotenv.config();
 
@@ -25,6 +27,13 @@ const limiter = rateLimit({
   message: "Too many requests from this IP, please try again later."
 });
 app.use(limiter);
+
+
+// API
+app.use("/api/contests", contestRoutes);
+
+// Start jobs
+startContestJobs();
 
 
 // ✅ Connect Database

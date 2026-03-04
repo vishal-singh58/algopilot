@@ -1,58 +1,6 @@
-import { useState } from "react";
-import { Calendar, Clock, ExternalLink, Bell } from "lucide-react";
-
-const MOCK_CONTESTS = [
-  {
-    id: "1",
-    name: "Codeforces Round #932 (Div. 2)",
-    platform: "Codeforces",
-    startTime: new Date("2026-02-18T14:35:00"),
-    duration: "2h",
-    url: "https://codeforces.com",
-    difficulty: "Div. 2"
-  },
-  {
-    id: "2",
-    name: "Weekly Contest 382",
-    platform: "LeetCode",
-    startTime: new Date("2026-02-17T02:30:00"),
-    duration: "1h 30m",
-    url: "https://leetcode.com",
-  },
-  {
-    id: "3",
-    name: "Starters 120",
-    platform: "CodeChef",
-    startTime: new Date("2026-02-19T20:00:00"),
-    duration: "2h",
-    url: "https://codechef.com",
-  },
-  {
-    id: "4",
-    name: "AtCoder Beginner Contest 340",
-    platform: "AtCoder",
-    startTime: new Date("2026-02-17T21:00:00"),
-    duration: "1h 40m",
-    url: "https://atcoder.jp",
-  },
-  {
-    id: "5",
-    name: "Educational Codeforces Round 162",
-    platform: "Codeforces",
-    startTime: new Date("2026-02-20T17:35:00"),
-    duration: "2h",
-    url: "https://codeforces.com",
-    difficulty: "Educational"
-  },
-  {
-    id: "6",
-    name: "Biweekly Contest 123",
-    platform: "LeetCode",
-    startTime: new Date("2026-02-23T02:30:00"),
-    duration: "1h 30m",
-    url: "https://leetcode.com",
-  },
-];
+import { useState, useEffect } from "react";
+import axios from "axios";
+import { Calendar, Clock, ExternalLink } from "lucide-react";
 
 const platformColors = {
   Codeforces: "bg-blue-500/20 text-blue-300 border-blue-500/30",
@@ -61,56 +9,101 @@ const platformColors = {
   AtCoder: "bg-gray-500/20 text-gray-300 border-gray-500/30",
 };
 
- const Contest = () => {
+const Contest = () => {
+  const [contests, setContests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [filter, setFilter] = useState("all");
 
+  useEffect(() => {
+    const fetchContests = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/contests`
+        );
+
+        setContests(Array.isArray(res.data) ? res.data : []);
+      } catch (err) {
+        console.error(err);
+        setError("Failed to load contests");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchContests();
+  }, []);
+
+  // Live refresh every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setContests((prev) => [...prev]);
+    }, 60000);
+
+    return () => clearInterval(timer);
+  }, []);
+
   const formatDate = (date) => {
+    if (!date) return "Date not available";
+    const d = new Date(date);
+    return isNaN(d.getTime()) ? "Invalid date" : d.toLocaleString();
+  };
+
+  const formatCountdown = (startTime) => {
+    if (!startTime) return "No date";
+
+    const start = new Date(startTime);
+    if (isNaN(start.getTime())) return "Invalid date";
+
     const now = new Date();
-    const diff = date.getTime() - now.getTime();
+    const diff = start - now;
+
+    if (diff <= 0) return "Live or Started";
+
     const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((diff / (1000 * 60)) % 60);
 
-    if (days > 0) return `In ${days} day${days > 1 ? "s" : ""} ${hours}h`;
-    if (hours > 0) return `In ${hours} hour${hours > 1 ? "s" : ""}`;
-
-    const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    return `In ${Math.max(0, minutes)} minutes`;
+    if (days > 0) return `In ${days}d ${hours}h`;
+    if (hours > 0) return `In ${hours}h ${minutes}m`;
+    return `In ${minutes}m`;
   };
 
-  const formatDateTime = (date) => {
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const filteredContests =
+  // Filter by platform
+  const filtered =
     filter === "all"
-      ? MOCK_CONTESTS
-      : MOCK_CONTESTS.filter((c) => c.platform === filter);
+      ? contests
+      : contests.filter((c) => c.platform === filter);
+
+  // ✅ Only sort (NO future filtering)
+  const sorted = [...filtered].sort(
+    (a, b) =>
+      new Date(a.startTime).getTime() -
+      new Date(b.startTime).getTime()
+  );
+
+  if (loading)
+    return (
+      <div className="text-center mt-20 text-gray-400">
+        Loading contests...
+      </div>
+    );
+
+  if (error)
+    return (
+      <div className="text-center mt-20 text-red-400">
+        {error}
+      </div>
+    );
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 text-white">
-
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="space-y-2">
-          <h1 className="text-3xl">Contest Tracker</h1>
-          <p className="text-gray-400">
-            Stay updated with upcoming competitive programming contests
-          </p>
-        </div>
-
-        <button className="flex items-center gap-2 px-4 py-2 bg-slate-800 border border-slate-700 rounded-lg hover:bg-slate-700 transition">
-          <Bell className="w-4 h-4" />
-          Set Reminders
-        </button>
-      </div>
+    <div className="max-w-5xl mx-auto py-10 space-y-6 text-white">
+      <h1 className="text-3xl font-bold tracking-tight">
+        AlgoPilot Contest Tracker
+      </h1>
 
       {/* Filter Tabs */}
-      <div className="flex flex-wrap gap-3 bg-slate-800 p-2 rounded-lg border border-slate-700">
+      <div className="flex gap-3 flex-wrap">
         {["all", "Codeforces", "LeetCode", "CodeChef", "AtCoder"].map(
           (platform) => (
             <button
@@ -118,11 +111,11 @@ const platformColors = {
               onClick={() => setFilter(platform)}
               className={`px-4 py-2 rounded-md text-sm transition ${
                 filter === platform
-                  ? "bg-blue-600 text-white"
-                  : "text-gray-400 hover:text-white"
+                  ? "bg-blue-600"
+                  : "bg-slate-800 hover:bg-slate-700"
               }`}
             >
-              {platform === "all" ? "All Platforms" : platform}
+              {platform === "all" ? "All" : platform}
             </button>
           )
         )}
@@ -130,88 +123,68 @@ const platformColors = {
 
       {/* Contest List */}
       <div className="space-y-4">
-        {filteredContests.map((contest) => (
-          <div
-            key={contest.id}
-            className="bg-slate-800/50 border border-slate-700 rounded-xl p-6 hover:border-blue-500/50 transition"
-          >
-            <div className="flex items-start justify-between gap-4">
+        {sorted.length === 0 ? (
+          <div className="text-center text-gray-400 mt-10">
+            No contests available.
+          </div>
+        ) : (
+          sorted.map((contest) => (
+            <div
+              key={`${contest.platform}-${contest.id}`}
+              className="bg-slate-900 border border-slate-700 p-6 rounded-2xl shadow-md hover:shadow-lg transition"
+            >
+              <div className="flex justify-between items-start">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3 flex-wrap">
+                    <h3 className="text-lg font-semibold">
+                      {contest.name}
+                    </h3>
 
-              <div className="flex-1 space-y-3">
-
-                <div className="flex items-center gap-3 flex-wrap">
-                  <h3 className="text-lg">{contest.name}</h3>
-
-                  <span
-                    className={`px-3 py-1 text-sm rounded-full border ${platformColors[contest.platform]}`}
-                  >
-                    {contest.platform}
-                  </span>
-
-                  {contest.difficulty && (
-                    <span className="px-3 py-1 text-sm rounded-full border border-slate-600 text-gray-400">
-                      {contest.difficulty}
+                    <span
+                      className={`px-3 py-1 text-xs rounded-full border ${
+                        platformColors[contest.platform] ||
+                        "bg-gray-700"
+                      }`}
+                    >
+                      {contest.platform}
                     </span>
-                  )}
-                </div>
-
-                <div className="flex items-center gap-6 text-sm text-gray-400">
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    {formatDateTime(contest.startTime)}
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <Clock className="w-4 h-4" />
-                    {contest.duration}
+                  <div className="flex items-center gap-6 text-sm text-gray-400">
+                    <div className="flex items-center gap-2">
+                      <Calendar size={16} />
+                      {formatDate(contest.startTime)}
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Clock size={16} />
+                      {contest.durationHours
+                        ? `${contest.durationHours}h`
+                        : "N/A"}
+                    </div>
+                  </div>
+
+                  <div className="text-green-400 text-sm font-medium">
+                    {formatCountdown(contest.startTime)}
                   </div>
                 </div>
 
-                <div className="px-3 py-1 bg-green-500/20 text-green-300 rounded-full text-sm border border-green-500/30 inline-block">
-                  {formatDate(contest.startTime)}
-                </div>
+                <button
+                  onClick={() =>
+                    contest.url &&
+                    window.open(contest.url, "_blank")
+                  }
+                  className="p-2 bg-slate-800 rounded-lg hover:bg-slate-700 transition"
+                >
+                  <ExternalLink size={18} />
+                </button>
               </div>
-
-              <button
-                onClick={() => window.open(contest.url, "_blank")}
-                className="p-2 bg-slate-700 border border-slate-600 rounded-md hover:bg-slate-600 transition"
-              >
-                <ExternalLink className="w-4 h-4" />
-              </button>
-
             </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Stats Section */}
-      <div className="grid md:grid-cols-3 gap-4 pt-6">
-
-        <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-6 text-center">
-          <div className="text-2xl text-blue-400">
-            {MOCK_CONTESTS.length}
-          </div>
-          <div className="text-sm text-gray-400 mt-1">
-            Upcoming Contests
-          </div>
-        </div>
-
-        <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-6 text-center">
-          <div className="text-2xl text-purple-400">4</div>
-          <div className="text-sm text-gray-400 mt-1">
-            Platforms Tracked
-          </div>
-        </div>
-
-        <div className="bg-slate-800/30 border border-slate-700 rounded-xl p-6 text-center">
-          <div className="text-2xl text-green-400">24/7</div>
-          <div className="text-sm text-gray-400 mt-1">
-            Real-time Updates
-          </div>
-        </div>
-
+          ))
+        )}
       </div>
     </div>
   );
-}
+};
+
 export default Contest;
